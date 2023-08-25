@@ -11,15 +11,20 @@ app.get('/', (req, res) => {
     res.send('Hello World!');
 });
 
-// TODO: change this according your needs
-const sentryKey = '1cde1991677ab0bee929938ca9136004';
-const sentryHost = 'o4505635479945216.ingest.sentry.io';
-const projectId = '4505635481190400';
-
 app.post('/tunnel', async (req, res) => {
     try {
         const envelope = req.body;
-        const url = `https://${sentryHost}/api/${projectId}/envelope/?sentry_key=${sentryKey}`;
+
+        const pieces = envelope.split('\n');
+
+        const header = JSON.parse(pieces[0]);
+
+        const { host, pathname, username } = new URL(header.dsn);
+
+        const projectId = pathname.slice(1);
+
+        const url = `https://${host}/api/${projectId}/envelope/?sentry_key=${username}`;
+
         const options = {
             'headers': {
                 'Content-Type': 'application/x-sentry-envelope'
